@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Historial de Ventas";
+}
+
+<h2>Historial de Ventas</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>VentaId</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var v in Model)
+        {
+            <tr>
+                <td>@v.VentaId</td>
+                <td>@v.ClienteNombre</td>
+                <td>@v.Fecha</td>
+                <td>@v.Total</td>
+            </tr>
+        }
+    </tbody>
+</table>

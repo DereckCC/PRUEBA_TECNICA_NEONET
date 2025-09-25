@@ -1,0 +1,28 @@
+﻿@model IEnumerable<WebVentas.Models.ProductoVM>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Productos";
+}
+
+<h2>Productos disponibles</h2>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Nombre</td>
+                <td>@p.Precio</td>
+                <td>@p.Stock</td>
+            </tr>
+        }
+    </tbody>
+</table>

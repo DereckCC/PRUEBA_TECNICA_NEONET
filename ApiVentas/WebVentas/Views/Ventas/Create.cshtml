@@ -1,0 +1,130 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Registrar Venta";
+}
+
+<h2>Registrar Venta</h2>
+
+<div class="container mt-4">
+    <form asp-action="Create" method="post" id="ventaForm">
+        <!-- Selección de cliente -->
+        <div class="mb-3">
+            <label for="cliente" class="form-label">Cliente</label>
+            <select id="cliente" class="form-select" required>
+                <option value="">-- Seleccione un cliente --</option>
+                @foreach (var c in (ViewBag.Clientes as List<WebVentas.Models.ClienteVM>) ?? new List<WebVentas.Models.ClienteVM>())
+                {
+                    <option value="@c.Id">@c.Nombre</option>
+                }
+            </select>
+        </div>
+
+        <!-- Selección de producto -->
+        <div class="mb-3">
+            <label for="producto" class="form-label">Producto</label>
+            <select id="producto" class="form-select">
+                <option value="">-- Seleccione un producto --</option>
+                @foreach (var p in (ViewBag.Productos as List<WebVentas.Models.ProductoVM>) ?? new List<WebVentas.Models.ProductoVM>())
+                {
+                    <option value="@p.Id" data-precio="@p.Precio" data-stock="@p.Stock">
+                        @p.Nombre (Stock: @p.Stock)
+                    </option>
+                }
+            </select>
+        </div>
+
+        <!-- Cantidad -->
+        <div class="mb-3">
+            <label for="cantidad" class="form-label">Cantidad</label>
+            <input type="number" id="cantidad" class="form-control" min="1" value="1" />
+        </div>
+
+        <!-- Botón agregar -->
+        <button type="button" class="btn btn-primary mb-3" id="btnAgregar">Agregar al carrito</button>
+
+        <!-- Carrito -->
+        <h4>Carrito</h4>
+        <table class="table table-bordered" id="carrito">
+            <thead class="table-dark">
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Total -->
+        <div class="mb-3">
+            <h5>Total: <span id="total">0.00</span></h5>
+        </div>
+
+        <!-- Campos ocultos para enviar al Controller -->
+        <input type="hidden" name="ClienteId" id="ClienteId" />
+        <input type="hidden" name="DetallesJson" id="DetallesJson" />
+
+        <!-- Botón enviar -->
+        <button type="submit" class="btn btn-success">Registrar Venta</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let carrito = [];
+        let total = 0;
+
+        // Agregar producto al carrito
+        document.getElementById("btnAgregar").addEventListener("click", function () {
+            let productoSelect = document.getElementById("producto");
+            let productoId = productoSelect.value;
+            let productoNombre = productoSelect.options[productoSelect.selectedIndex].text;
+            let precio = parseFloat(productoSelect.options[productoSelect.selectedIndex].dataset.precio || 0);
+            let stock = parseInt(productoSelect.options[productoSelect.selectedIndex].dataset.stock || 0);
+            let cantidad = parseInt(document.getElementById("cantidad").value);
+
+            if (!productoId) {
+                alert("Seleccione un producto válido.");
+                return;
+            }
+            if (cantidad > stock) {
+                alert("Cantidad supera el stock disponible.");
+                return;
+            }
+
+            let subtotal = precio * cantidad;
+            carrito.push({ productoId: parseInt(productoId), cantidad: cantidad, precioUnitario: precio });
+
+            let row = `<tr>
+                <td>${productoNombre}</td>
+                <td>${precio.toFixed(2)}</td>
+                <td>${cantidad}</td>
+                <td>${subtotal.toFixed(2)}</td>
+                <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this, ${subtotal}, ${productoId})">Eliminar</button></td>
+            </tr>`;
+            document.querySelector("#carrito tbody").insertAdjacentHTML("beforeend", row);
+
+            total += subtotal;
+            document.getElementById("total").innerText = total.toFixed(2);
+
+            document.getElementById("DetallesJson").value = JSON.stringify(carrito);
+        });
+
+        // Eliminar producto del carrito
+        function eliminarProducto(btn, subtotal, productoId) {
+            btn.closest("tr").remove();
+            carrito = carrito.filter(x => x.productoId != productoId);
+            total -= subtotal;
+            document.getElementById("total").innerText = total.toFixed(2);
+            document.getElementById("DetallesJson").value = JSON.stringify(carrito);
+        }
+
+        // Antes de enviar, guardamos el cliente seleccionado
+        document.getElementById("ventaForm").addEventListener("submit", function () {
+            let clienteId = document.getElementById("cliente").value;
+            document.getElementById("ClienteId").value = clienteId;
+        });
+    </script>
+}
